@@ -1,4 +1,5 @@
 ---
+Author : Chang
 output: html_document
 ---
 
@@ -17,7 +18,8 @@ This code will validate the present of the data files. If the data file is not p
 ```{r}
 ###LoadData
 ## Set working directory
-setwd("C:/ReproducibleResearch-Assignment1/")
+setwd("C:/ReproducibleResearch/RepData_PeerAssessment1/")
+
 
 if(!file.exists("activity.csv")) {
   temp <- tempfile()
@@ -39,19 +41,14 @@ activity$interval <- as.factor(activity$interval)
 
 # Exrtract levels of 5-min intervals
 l <- levels(activity$interval)
-```
 
-## What is mean total number of steps taken per day?
-For this part of the assignment,  missing values in the dataset are ignored.
 
-#### 1. Calculate the total number of steps taken per day
-
-```{r}
 
 totalSteps <- tapply(activity$steps, activity$date, sum, na.rm = T)
 avgSteps <- tapply(activity$steps, activity$date, mean, na.rm = T)
 par(mfrow = c(2, 1))
-hist(totalSteps, breaks = 10, col = "red", main = "Distribution of the total Number of steps each day", xlab = "Average Total Number of Steps")
+hist(totalSteps, breaks = 10, col = "red", main = "Distribution of the total Number of steps each day", 
+    xlab = "Average Total Number of Steps")
 ```
 
 #### 2. Calculate and report the mean and median of the total number of steps taken per day

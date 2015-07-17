@@ -1,4 +1,5 @@
 ---
+Author : Chang
 output: html_document
 ---
 
@@ -14,10 +15,12 @@ This code will validate the present of the data files. If the data file is not p
   1. This R programmed in Windows Environment.
   2. Working directory in "C:/ReproducibleResearch-Assignment1/". Please create this folder if it is not present. 
 
-```{r}
+
+```r
 ###LoadData
 ## Set working directory
-setwd("C:/ReproducibleResearch-Assignment1/")
+setwd("C:/ReproducibleResearch/RepData_PeerAssessment1/")
+
 
 if(!file.exists("activity.csv")) {
   temp <- tempfile()
@@ -27,7 +30,13 @@ if(!file.exists("activity.csv")) {
 
 }
 cat("DataFile downloaded in ", getwd()) #saving to working directory
+```
 
+```
+## DataFile downloaded in  C:/ReproducibleResearch/RepData_PeerAssessment1
+```
+
+```r
 activity <- read.csv("activity.csv")
 activityCopy <- activity
 
@@ -39,32 +48,32 @@ activity$interval <- as.factor(activity$interval)
 
 # Exrtract levels of 5-min intervals
 l <- levels(activity$interval)
-```
 
-## What is mean total number of steps taken per day?
-For this part of the assignment,  missing values in the dataset are ignored.
 
-#### 1. Calculate the total number of steps taken per day
-
-```{r}
 
 totalSteps <- tapply(activity$steps, activity$date, sum, na.rm = T)
 avgSteps <- tapply(activity$steps, activity$date, mean, na.rm = T)
 par(mfrow = c(2, 1))
-hist(totalSteps, breaks = 10, col = "red", main = "Distribution of the total Number of steps each day", xlab = "Average Total Number of Steps")
+hist(totalSteps, breaks = 10, col = "red", main = "Distribution of the total Number of steps each day", 
+    xlab = "Average Total Number of Steps")
 ```
+
+![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1-1.png) 
 
 #### 2. Calculate and report the mean and median of the total number of steps taken per day
 
-```{r}
+
+```r
 hist(as.vector(avgSteps), breaks = 10, col = "blue", main = "Distribution of the Average Number of steps each day", xlab = "Average Number of Steps")
 ```
+
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png) 
 
 
 ## Average daily activity pattern
 Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
-```{r}
 
+```r
 # Find the average number of steps grouped by intereval
 Steps = tapply(activity$steps, activity$interval, mean, na.rm = T)
 
@@ -75,18 +84,21 @@ Interval <- as.numeric(l)
 df <- data.frame(Steps, Interval)
 ```
 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
-```{r}
+
+```r
 library(ggplot2)
 
 g <- ggplot(df, aes(Interval, Steps))
 
 g + geom_line(colour = "blue") + ggtitle("Time Series Plot of the 5-minute Interval\n and the Average Number of Steps,\n Taken across all Days") +ylab ("Average Number of Steps")
-
 ```
+
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png) 
 
 ## Imputing missing values
 
-```{r}
+
+```r
 # Missing data
 missing <- is.na(activity)
 # Number of missing values
@@ -94,14 +106,18 @@ missing <- is.na(activity)
 ```
 
 ```
-
-```{r}
-
-# Impute data using the mice (multivariate imputation chains equation)
-library(mice)
+## [1] 2304
+```
 
 ```
-```{r}
+
+
+```r
+# Impute data using the mice (multivariate imputation chains equation)
+library(mice)
+```
+
+```r
 set.seed(144)
 # imputedData <- complete(mice(activity)) Number of total steps each day
 # after imputation a.out <- amelia(activityCopy, cs='date', m=1) Data frame
@@ -119,8 +135,19 @@ totStepsImp <- tapply(activityCopy$steps, activityCopy$date, sum)
 summary(totalSteps)
 ```
 
-```{r}
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##       0    6778   10400    9354   12810   21190
+```
+
+
+```r
 summary(totStepsImp)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    9819   10770   10770   12810   21190
 ```
 There does not seem to be a significant difference in the average number of total steps each day before and after imputing. 
 
@@ -132,8 +159,8 @@ More information about the mice and Amelia packages can be found here [mice][1] 
 
 
 ## Compare total number of steps each day before and after imputing
-```{r}
 
+```r
 par(mfrow = c(2, 1))
 hist(totalSteps, col = "red", xlab = "Average Total Number of Steps Before Imputing", 
     main = "", breaks = 10)
@@ -142,9 +169,12 @@ hist(totStepsImp, col = "cyan", main = "", xlab = "Average Total Number of Steps
     breaks = 10)
 ```
 
+![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-1.png) 
+
 ## Are there differences in activity patterns between weekdays and weekends?
 
-```{r}
+
+```r
 # Extract weekdays
 activityCopy$Days <- weekdays(as.Date(as.character(activityCopy$date)))
 # Create a logical vector d where Days are Saturday or Sunday
@@ -176,7 +206,8 @@ dfWE <- data.frame(avgWE, IntervalWE)
 # activityCopy$interval <- factor(activityCopy$interval)
 ```
 
-```{r}
+
+```r
 # Use base plot
 plot(dfWD$IntervalWD, dfWD$avgWD, type = "l", main = "Comparison of the Average Number of Steps\n between Weekdays and the Weekend", 
     xlab = "Interval", ylab = "Number of Steps")
@@ -184,7 +215,10 @@ lines(dfWE$IntervalWE, dfWE$avgWE, col = "red")
 legend("topright", c("Weekday", "Weekend"), col = c("black", "red"), lty = 1)
 ```
 
-```{r}
+![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11-1.png) 
+
+
+```r
 # Use the lattice Package
 
 # Add a column to the data frames that include weekdays and weekend days
@@ -203,12 +237,17 @@ library(lattice)
 xyplot(Steps ~ Interval | wDays, data = df, type = "l", layout = c(1, 2), ylab = "Average Number of Steps")
 ```
 
+![plot of chunk unnamed-chunk-12](figure/unnamed-chunk-12-1.png) 
 
-```{r}
+
+
+```r
 # Using ggplot2 package
 g <- ggplot(df, aes(Interval, Steps, fill = wDays, colour = wDays))
 g + geom_line() + labs(colour = "") + ggtitle("Comparison of the Average Number of Steps\n between Weekdays and Weekend") + ylab("Average Number of Steps")
 ```
+
+![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-13-1.png) 
 
 
 ## Conclusion
