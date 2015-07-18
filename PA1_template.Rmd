@@ -8,12 +8,36 @@ It is now possible to collect a large amount of data about personal movement usi
 
 This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
 
+# Data
+
+The data for this assignment can be downloaded from the course web
+site:
+
+* Dataset: [Activity monitoring data](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip) [52K]
+
+The variables included in this dataset are:
+
+* **steps**: Number of steps taking in a 5-minute interval (missing
+    values are coded as `NA`)
+
+* **date**: The date on which the measurement was taken in YYYY-MM-DD
+    format
+
+* **interval**: Identifier for the 5-minute interval in which
+    measurement was taken
+
+
+The dataset is stored in a comma-separated-value (CSV) file and there
+are a total of 17,568 observations in this
+dataset.
+
 ## Loading and preprocessing the data
 This code will validate the present of the data files. If the data file is not present, it will download the data from target URL. 
 
+
 ### Please note
   1. This R programmed in Windows Environment.
-  2. Working directory in "C:/ReproducibleResearch-Assignment1/". Please create this folder if it is not present. 
+  2. Working directory in "C:/ReproducibleResearch/RepData_PeerAssessment1/". Please create this folder if it is not present. 
 
 ```{r}
 ###LoadData
@@ -35,31 +59,60 @@ activityCopy <- activity
 
 # Convert date to date class
 activity$Date <- as.Date(activity$date, "%Y-%m-%d")
+uniqueDates <- unique(activity$Date)
 
 # Convert interval to a factor
 activity$interval <- as.factor(activity$interval)
 
 # Exrtract levels of 5-min intervals
 l <- levels(activity$interval)
+uniqueIntervals <- unique(activity$interval)
+
+```
+
+### Total Number of steps taken per day
 
 
+```{r}
 
 totalSteps <- tapply(activity$steps, activity$date, sum, na.rm = T)
 avgSteps <- tapply(activity$steps, activity$date, mean, na.rm = T)
-par(mfrow = c(2, 1))
-hist(totalSteps, breaks = 10, col = "red", main = "Distribution of the total Number of steps each day", 
-    xlab = "Average Total Number of Steps")
+
+hist(totalSteps, breaks = 10, col = "red", main = "Total Number of steps each day", 
+    xlab = "Total Number of Steps each day")
 ```
 
-#### 2. Calculate and report the mean and median of the total number of steps taken per day
+#### Calculate and report the mean and median of the total number of steps taken per day
+
+The mean Steps Per Day are 
+```{r}
+# First split up the data frame for steps by day
+stepsSplit <- split(activity$steps, activity$Date)
+meanStepsPerDay <- sapply(stepsSplit, mean, na.rm = TRUE)
+meanDataFrame <- data.frame(Date = uniqueDates, MeanStepsperDay = meanStepsPerDay, 
+    row.names = NULL)
+meanDataFrame
+```
 
 ```{r}
-hist(as.vector(avgSteps), breaks = 10, col = "blue", main = "Distribution of the Average Number of steps each day", xlab = "Average Number of Steps")
+medianStepsPerDay <- sapply(stepsSplit, median, na.rm = TRUE)
+medianDataFrame <- data.frame(date = uniqueDates, MedianStepsPerDay = medianStepsPerDay, 
+    row.names = NULL)
+medianDataFrame
+
+```
+The median measure may look a bit puzzling, but if you observe the data for the amount of steps over some of the days, you will see that a majority of the steps taken are zero and so the mean would logically represent the 50 percentile. Nevertheless , median of total steps given better observation to the data set as below:
+
+```{r}
+median(totalSteps, na.rm=TRUE)
+
 ```
 
-
 ## Average daily activity pattern
-Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+What we now need to do is split up this data again so that individual data frames represent the steps taken over each time interval. As such, there will be a data frame for interval 5, another data frame for interval 10 and so on. Once we extract out these individual data frames, we thus compute the mean for each time interval. It is imperative to note that we again will ignore NA values. We will thus plot the data as a time-series plot (of type="l"). Once we have done this, we will locate where in the time-series plot the maximum is located and will draw a red vertical line to denote this location:
+
+### Plot Data Set
+
 ```{r}
 
 # Find the average number of steps grouped by intereval
@@ -70,27 +123,42 @@ Interval <- as.numeric(l)
 
 # Create the dataframe df of the Interval and Steps columns
 df <- data.frame(Steps, Interval)
+
 ```
+
+
 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 ```{r}
+
+
+# Plot 
 library(ggplot2)
 
 g <- ggplot(df, aes(Interval, Steps))
 
-g + geom_line(colour = "blue") + ggtitle("Time Series Plot of the 5-minute Interval\n and the Average Number of Steps,\n Taken across all Days") +ylab ("Average Number of Steps")
+g + geom_line(colour = "blue") + ggtitle("Time Series Plot of the 5-minute Interval\n and the Average Number of Steps,\n Taken across all Days") +ylab ("Average Number of Steps") + geom_vline(xintercept = df[which.max(Steps), 2 ],colour="green")
 
 ```
+The Maximum number of steps is 
+```{r}
+# Display the Max value
+maxInterval<-df[which.max(Steps), ]
+maxInterval
 
+```
 ## Imputing missing values
 
+There are many days/intervals where there are missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data.
+
+### Calculate Missing Values
+
 ```{r}
-# Missing data
-missing <- is.na(activity)
-# Number of missing values
-(n.missing <- sum(missing))
-```
+missing <- is.na(activityCopy$steps)
+# How many missing
+table(missing)
 
 ```
+There are 2304 Missing Data Values.
 
 ```{r}
 
@@ -131,7 +199,6 @@ More information about the mice and Amelia packages can be found here [mice][1] 
 ## Compare total number of steps each day before and after imputing
 ```{r}
 
-par(mfrow = c(2, 1))
 hist(totalSteps, col = "red", xlab = "Average Total Number of Steps Before Imputing", 
     main = "", breaks = 10)
 title("Distribution of the total Number of steps\n each day Before and After Imputing")
